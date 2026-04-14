@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Coin Roll Animation</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #111;
+      flex-direction: column;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(45deg, #ffcc00, #ff9900);
+      color: #111;
+      font-weight: bold;
+      margin-bottom: 40px;
+    }
+
+    .coin {
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+      border-radius: 50%;
+      position: absolute;
+      top: 20%;
+      left: 20%;
+      transform: rotate(0deg);
+      opacity: 0;
+    }
+
+    /* Rolling animation */
+    @keyframes roll {
+      0% { transform: translateX(0) rotate(0deg); }
+      70% { transform: translateX(300px) rotate(720deg); }
+      100% { transform: translateX(300px) rotate(720deg) translateY(200px); }
+    }
+
+    .animate {
+      opacity: 1;
+      animation: roll 3s ease-out forwards;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="startAnimation()">Create Marfa Animation</button>
+  <div class="coin" id="coin"></div>
+
+  <script>
+    function startAnimation() {
+      const coin = document.getElementById('coin');
+      coin.classList.remove('animate'); // reset
+      void coin.offsetWidth; // force reflow
+      coin.classList.add('animate');
+    }
+  </script>
+</body>
+</html>
