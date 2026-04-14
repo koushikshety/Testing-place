@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Coin Roll Animation</title>
+  <title>Looping Coin Roll Animation</title>
   <style>
     body {
       display: flex;
@@ -14,20 +14,20 @@
     }
 
     button {
-      padding: 12px 24px;
-      font-size: 16px;
+      padding: 20px 40px;       /* Bigger size */
+      font-size: 20px;          /* Larger text */
       cursor: pointer;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       background: linear-gradient(45deg, #ffcc00, #ff9900);
       color: #111;
       font-weight: bold;
-      margin-bottom: 40px;
+      margin: 20px;
     }
 
     .coin {
-      width: 60px;
-      height: 60px;
+      width: 80px;              /* Bigger coin */
+      height: 80px;
       background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
       border-radius: 50%;
       position: absolute;
@@ -37,29 +37,37 @@
       opacity: 0;
     }
 
-    /* Rolling animation */
+    /* Rolling + bouncing animation */
     @keyframes roll {
-      0% { transform: translateX(0) rotate(0deg); }
-      70% { transform: translateX(300px) rotate(720deg); }
+      0%   { transform: translateX(0) rotate(0deg); }
+      60%  { transform: translateX(300px) rotate(720deg); }
+      75%  { transform: translateX(300px) rotate(720deg) translateY(180px); }
+      85%  { transform: translateX(300px) rotate(720deg) translateY(200px); }
+      95%  { transform: translateX(300px) rotate(720deg) translateY(190px); }
       100% { transform: translateX(300px) rotate(720deg) translateY(200px); }
     }
 
     .animate {
       opacity: 1;
-      animation: roll 3s ease-out forwards;
+      animation: roll 3s ease-out infinite; /* infinite loop */
     }
   </style>
 </head>
 <body>
-  <button onclick="startAnimation()">Create Marfa Animation</button>
+  <button onclick="startAnimation()">Start Looping Animation</button>
+  <button onclick="stopAnimation()">Stop Animation</button>
   <div class="coin" id="coin"></div>
 
   <script>
     function startAnimation() {
       const coin = document.getElementById('coin');
-      coin.classList.remove('animate'); // reset
-      void coin.offsetWidth; // force reflow
       coin.classList.add('animate');
+    }
+
+    function stopAnimation() {
+      const coin = document.getElementById('coin');
+      coin.classList.remove('animate');
+      coin.style.opacity = 0; // hide coin when stopped
     }
   </script>
 </body>
