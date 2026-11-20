@@ -3,292 +3,248 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Renegade Immortal (仙逆) — 50/50 Stream Player</title>
+  <title>Donghua 3-in-1 Dummy Tester</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root {
-      --bg: #0b0e14;
-      --card: #141923;
-      --border: #242d3d;
-      --accent: #e11d48;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --amber: #f59e0b;
+      --bg: #0b0e14; --card: #141923; --border: #242d3d;
+      --accent: #e11d48; --text: #f1f5f9; --muted: #94a3b8; --green: #22c55e;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 14px;
-      line-height: 1.5;
-    }
-    .container { max-width: 960px; margin: 0 auto; }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    h1 { font-size: 1.15rem; font-weight: 700; }
-    .badge {
-      font-size: 0.72rem;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 600;
-      color: var(--amber);
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      background: rgba(245, 158, 11, 0.1);
-    }
-
-    .player-wrap {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      margin-bottom: 12px;
-    }
-    .player-wrap iframe,
-    .player-wrap video {
-      width: 100%;
-      height: 100%;
-      border: 0;
-      display: block;
-    }
-
-    .panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-    .controls-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-    select, input[type="number"], input[type="url"] {
-      background: #0f141e;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-    }
-    select {
-      flex: 1;
-      min-width: 200px;
-      font-weight: 600;
-      cursor: pointer;
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 14px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 1.15rem; margin-bottom: 10px; }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    input, select {
+      background: #0f141e; border: 1px solid var(--border); color: var(--text);
+      padding: 8px 10px; border-radius: 7px; font-size: 0.84rem; flex: 1; min-width: 160px;
     }
     .btn {
-      background: #1e2636;
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 9px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.84rem;
-      font-weight: 600;
+      background: #1e2636; color: var(--text); border: 1px solid var(--border);
+      padding: 8px 12px; border-radius: 7px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
     }
-    .btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
+    .btn.primary { background: var(--accent); border-color: var(--accent); }
+    .btn.danger { color: #f87171; border-color: rgba(248,113,113,0.4); }
+    .player-wrap {
+      width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px;
+      overflow: hidden; border: 1px solid var(--border); margin-bottom: 12px;
     }
-    .toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: var(--muted);
-      cursor: pointer;
+    .player-wrap video, .player-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
+    .mirror-item {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      background: #1a2130; padding: 8px 10px; border-radius: 7px; margin-top: 8px; font-size: 0.82rem;
     }
-    .toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
-
-    .ep-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
-      gap: 6px;
-      max-height: 150px;
-      overflow-y: auto;
-      margin-top: 10px;
-    }
-    .ep-btn {
-      background: #1a2130;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 7px 0;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .ep-btn.active { background: var(--accent); border-color: var(--accent); }
-
-    .status {
-      font-size: 0.76rem;
-      color: var(--muted);
-      margin-top: 8px;
-      word-break: break-all;
-    }
+    .badge { font-size: 0.7rem; padding: 2px 7px; border-radius: 99px; background: #242d3d; color: var(--muted); }
+    .status { font-size: 0.76rem; color: var(--muted); margin-top: 8px; word-break: break-all; }
+    label.toggle { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); cursor: pointer; }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>Renegade Immortal (仙逆)</h1>
-      <span class="badge">50/50 Risk • No YT / Dailymotion / Tencent</span>
-    </header>
+    <h1>Renegade Immortal — 3-in-1 Prototype (TG + CF Proxy + Firebase)</h1>
 
-    <!-- Player Stage (Hardcoded default iframe) -->
-    <div class="player-wrap" id="player-stage">
-      <iframe
-        src="https://player.videasy.net/tv/223911/1/1"
-        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-        allowfullscreen
-        referrerpolicy="no-referrer"
-      ></iframe>
+    <!-- 1. Backend Config -->
+    <div class="panel">
+      <div class="row">
+        <input id="fb-url" placeholder="Firebase RTDB URL (e.g. https://your-app.firebaseio.com) — leave blank for local dummy" />
+        <input id="cf-url" placeholder="Cloudflare Worker URL (e.g. https://proxy.you.workers.dev)" />
+        <button class="btn primary" onclick="saveConfig()">Save & Reload</button>
+      </div>
+      <div class="status" id="mode-status">Mode: Local Dummy Storage (add Firebase URL to sync live)</div>
     </div>
 
-    <!-- Stream Dropdown & Sandbox Toggle -->
-    <div class="panel">
-      <div class="controls-row">
-        <select id="server-select" onchange="loadEpisode()">
-          <option value="videasy">Server 1: Videasy (Fast)</option>
-          <option value="vidlink">Server 2: VidLink</option>
-          <option value="vidsrc_cc">Server 3: VidSrc.cc</option>
-          <option value="vidking">Server 4: VidKing</option>
-          <option value="autoembed">Server 5: AutoEmbed</option>
-          <option value="embed_su">Server 6: Embed.su</option>
-        </select>
+    <!-- 2. Video Player -->
+    <div class="player-wrap" id="player-stage"></div>
 
-        <label class="toggle" title="Blocks pop-up ads. Turn off if a server stays blank.">
-          <input type="checkbox" id="sandbox-toggle" onchange="loadEpisode()" />
-          Anti-Popup Sandbox
+    <!-- 3. Episode & Proxy Controls -->
+    <div class="panel">
+      <div class="row">
+        <select id="ep-select" onchange="loadMirrors()" style="max-width:160px;">
+          <option value="ep1">Episode 1</option>
+          <option value="ep2">Episode 2</option>
+          <option value="ep3">Episode 3</option>
+        </select>
+        <label class="toggle">
+          <input type="checkbox" id="use-proxy" /> Route through Cloudflare Worker Proxy
         </label>
       </div>
-      <div class="status" id="status-text">Active: https://player.videasy.net/tv/223911/1/1</div>
+      <div class="status" id="play-status">Select a mirror below to test playback.</div>
+      <div id="mirror-list"></div>
     </div>
 
-    <!-- Episode Switcher -->
+    <!-- 4. Community Mirror Submission -->
     <div class="panel">
-      <div class="controls-row">
-        <strong style="font-size:0.86rem;">Episode:</strong>
-        <button class="btn" onclick="stepEpisode(-1)">← Prev</button>
-        <input type="number" id="ep-input" value="1" min="1" max="200" style="width:76px;" onchange="jumpEpisode()" />
-        <button class="btn" onclick="stepEpisode(1)">Next →</button>
-      </div>
-      <div class="ep-grid" id="ep-grid"></div>
-    </div>
-
-    <!-- Custom URL / HLS / MP4 Loader -->
-    <div class="panel">
-      <div class="controls-row">
-        <input type="url" id="custom-url" style="flex:1;min-width:200px;" placeholder="Paste custom embed, .m3u8, or .mp4 URL" />
-        <button class="btn active" onclick="loadCustom()">Load</button>
+      <div style="font-size:0.84rem;font-weight:600;margin-bottom:8px;">Submit New Mirror to Vault</div>
+      <div class="row">
+        <select id="m-type" style="max-width:150px;">
+          <option value="hls">HLS (.m3u8)</option>
+          <option value="mp4">Direct (.mp4)</option>
+          <option value="tg">Telegram file_id</option>
+          <option value="iframe">Iframe Embed</option>
+        </select>
+        <input id="m-label" placeholder="Label (e.g. Server 1 - 1080p)" style="max-width:180px;" />
+        <input id="m-val" placeholder="Paste URL or Telegram file_id" />
+        <button class="btn primary" onclick="addMirror()">+ Add</button>
       </div>
     </div>
   </div>
 
   <script>
-    const TMDB_ID = 223911;
-    const SEASON = 1;
-    let currentEp = 1;
-    let hlsInstance = null;
+    let hls = null;
+    const SHOW_ID = "renegade_immortal";
 
-    const serverUrls = {
-      videasy:   (ep) => `https://player.videasy.net/tv/${TMDB_ID}/${SEASON}/${ep}`,
-      vidlink:   (ep) => `https://vidlink.pro/tv/${TMDB_ID}/${SEASON}/${ep}`,
-      vidsrc_cc: (ep) => `https://vidsrc.cc/v2/embed/tv/${TMDB_ID}/${SEASON}/${ep}`,
-      vidking:   (ep) => `https://www.vidking.net/embed/tv/${TMDB_ID}/${SEASON}/${ep}`,
-      autoembed: (ep) => `https://player.autoembed.cc/embed/tv/${TMDB_ID}/${SEASON}/${ep}`,
-      embed_su:  (ep) => `https://embed.su/embed/tv/${TMDB_ID}/${SEASON}/${ep}`
+    // Default dummy mirrors so you can test immediately
+    const defaultDummy = {
+      ep1: {
+        m1: { label: "Dummy HLS Test Stream", type: "hls", value: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", reports: 0 },
+        m2: { label: "Dummy MP4 Clip", type: "mp4", value: "https://www.w3schools.com/html/mov_bbb.mp4", reports: 0 }
+      }
     };
 
-    function destroyHLS() {
-      if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+    function getCfg() {
+      return {
+        fb: (localStorage.getItem("cfg_fb") || "").replace(/\/$/, ""),
+        cf: (localStorage.getItem("cfg_cf") || "").replace(/\/$/, "")
+      };
     }
 
-    function renderIframe(url) {
-      destroyHLS();
-      const useSandbox = document.getElementById("sandbox-toggle").checked;
-      const sandboxAttr = useSandbox
-        ? 'sandbox="allow-scripts allow-same-origin allow-presentation"'
-        : "";
-
-      document.getElementById("player-stage").innerHTML = `
-        <iframe
-          src="${url}"
-          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-          allowfullscreen
-          referrerpolicy="no-referrer"
-          ${sandboxAttr}
-        ></iframe>`;
-      document.getElementById("status-text").textContent = `Active: ${url}`;
+    function saveConfig() {
+      localStorage.setItem("cfg_fb", document.getElementById("fb-url").value.trim());
+      localStorage.setItem("cfg_cf", document.getElementById("cf-url").value.trim());
+      init();
     }
 
-    function loadEpisode() {
-      const serverKey = document.getElementById("server-select").value;
-      const url = serverUrls[serverKey](currentEp);
-      renderIframe(url);
-      document.getElementById("ep-input").value = currentEp;
-      document.querySelectorAll(".ep-btn").forEach(btn => {
-        btn.classList.toggle("active", Number(btn.dataset.ep) === currentEp);
-      });
+    async function fetchMirrors(ep) {
+      const { fb } = getCfg();
+      if (!fb) {
+        const local = JSON.parse(localStorage.getItem("dummy_db") || JSON.stringify(defaultDummy));
+        return local[ep] || {};
+      }
+      const res = await fetch(`${fb}/mirrors/${SHOW_ID}/${ep}.json`);
+      return (await res.json()) || {};
     }
 
-    function stepEpisode(delta) {
-      currentEp = Math.max(1, currentEp + delta);
-      loadEpisode();
+    async function loadMirrors() {
+      const ep = document.getElementById("ep-select").value;
+      const list = document.getElementById("mirror-list");
+      list.innerHTML = `<div class="status">Loading mirrors...</div>`;
+
+      const mirrors = await fetchMirrors(ep);
+      const entries = Object.entries(mirrors).filter(([, m]) => (m.reports || 0) < 3);
+
+      if (!entries.length) {
+        list.innerHTML = `<div class="status">No working mirrors for ${ep}. Add one below!</div>`;
+        return;
+      }
+
+      list.innerHTML = entries.map(([id, m]) => `
+        <div class="mirror-item">
+          <div>
+            <strong>${m.label}</strong>
+            <span class="badge">${m.type.toUpperCase()}</span>
+            ${m.reports ? `<span class="badge">⚠ ${m.reports}</span>` : ""}
+          </div>
+          <div class="row">
+            <button class="btn primary" onclick='playMirror(${JSON.stringify(m)})'>▶ Play</button>
+            <button class="btn danger" onclick="reportMirror('${id}', ${m.reports || 0})">Report</button>
+          </div>
+        </div>
+      `).join("");
     }
 
-    function jumpEpisode() {
-      const val = parseInt(document.getElementById("ep-input").value, 10);
-      if (val >= 1) { currentEp = val; loadEpisode(); }
-    }
-
-    function loadCustom() {
-      const url = document.getElementById("custom-url").value.trim();
-      if (!url) return;
-      destroyHLS();
+    function playMirror(m) {
+      if (hls) { hls.destroy(); hls = null; }
+      const { cf } = getCfg();
+      const useProxy = document.getElementById("use-proxy").checked;
       const stage = document.getElementById("player-stage");
+      let finalUrl = m.value;
 
-      if (url.toLowerCase().includes(".m3u8")) {
-        stage.innerHTML = `<video id="hls-video" controls autoplay playsinline></video>`;
-        const video = document.getElementById("hls-video");
+      if (m.type === "tg") {
+        if (!cf) return alert("Enter your Cloudflare Worker URL first to stream Telegram file_ids.");
+        finalUrl = `${cf}/?tg=${encodeURIComponent(m.value)}`;
+      } else if (useProxy && m.type !== "iframe") {
+        if (!cf) return alert("Enter your Cloudflare Worker URL first to use the proxy.");
+        finalUrl = `${cf}/?url=${encodeURIComponent(m.value)}`;
+      }
+
+      document.getElementById("play-status").textContent = `Playing: ${finalUrl}`;
+
+      if (m.type === "iframe") {
+        stage.innerHTML = `<iframe src="${finalUrl}" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
+      } else if (m.type === "hls") {
+        stage.innerHTML = `<video id="vid" controls autoplay playsinline></video>`;
+        const vid = document.getElementById("vid");
         if (Hls.isSupported()) {
-          hlsInstance = new Hls();
-          hlsInstance.loadSource(url);
-          hlsInstance.attachMedia(video);
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = url;
+          hls = new Hls();
+          hls.loadSource(finalUrl);
+          hls.attachMedia(vid);
+        } else {
+          vid.src = finalUrl;
         }
-        document.getElementById("status-text").textContent = `HLS: ${url}`;
-      } else if (url.toLowerCase().includes(".mp4")) {
-        stage.innerHTML = `<video controls autoplay playsinline><source src="${url}" type="video/mp4" /></video>`;
-        document.getElementById("status-text").textContent = `MP4: ${url}`;
       } else {
-        renderIframe(url);
+        // MP4 or Telegram stream
+        stage.innerHTML = `<video controls autoplay playsinline><source src="${finalUrl}" type="video/mp4" /></video>`;
       }
     }
 
-    // Build Episode Grid (1–76)
-    const grid = document.getElementById("ep-grid");
-    for (let i = 1; i <= 76; i++) {
-      const btn = document.createElement("button");
-      btn.className = `ep-btn ${i === 1 ? "active" : ""}`;
-      btn.textContent = i;
-      btn.dataset.ep = i;
-      btn.onclick = () => { currentEp = i; loadEpisode(); };
-      grid.appendChild(btn);
+    async function addMirror() {
+      const ep = document.getElementById("ep-select").value;
+      const mirror = {
+        type: document.getElementById("m-type").value,
+        label: document.getElementById("m-label").value.trim() || "Community Mirror",
+        value: document.getElementById("m-val").value.trim(),
+        reports: 0
+      };
+      if (!mirror.value) return;
+
+      const { fb } = getCfg();
+      if (!fb) {
+        const local = JSON.parse(localStorage.getItem("dummy_db") || JSON.stringify(defaultDummy));
+        local[ep] = local[ep] || {};
+        local[ep]["m_" + Date.now()] = mirror;
+        localStorage.setItem("dummy_db", JSON.stringify(local));
+      } else {
+        await fetch(`${fb}/mirrors/${SHOW_ID}/${ep}.json`, {
+          method: "POST",
+          body: JSON.stringify(mirror)
+        });
+      }
+
+      document.getElementById("m-val").value = "";
+      loadMirrors();
     }
+
+    async function reportMirror(id, currentReports) {
+      const ep = document.getElementById("ep-select").value;
+      const { fb } = getCfg();
+      const nextReports = currentReports + 1;
+
+      if (!fb) {
+        const local = JSON.parse(localStorage.getItem("dummy_db") || JSON.stringify(defaultDummy));
+        if (local[ep]?.[id]) local[ep][id].reports = nextReports;
+        localStorage.setItem("dummy_db", JSON.stringify(local));
+      } else {
+        await fetch(`${fb}/mirrors/${SHOW_ID}/${ep}/${id}.json`, {
+          method: "PATCH",
+          body: JSON.stringify({ reports: nextReports })
+        });
+      }
+      loadMirrors();
+    }
+
+    function init() {
+      const { fb, cf } = getCfg();
+      document.getElementById("fb-url").value = fb;
+      document.getElementById("cf-url").value = cf;
+      document.getElementById("mode-status").textContent = fb
+        ? `Connected to Firebase: ${fb}`
+        : "Mode: Local Dummy Storage (add Firebase URL to sync live)";
+      loadMirrors();
+    }
+
+    init();
+    loadMirrors();
   </script>
 </body>
 </html>
