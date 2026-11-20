@@ -1,73 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Looping Coin Roll Animation</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Renegade Immortal (仙逆) — 50/50 Stream Player</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
+    :root {
+      --bg: #0b0e14;
+      --card: #141923;
+      --border: #242d3d;
+      --accent: #e11d48;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 14px;
+      line-height: 1.5;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    header {
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      height: 100vh;
-      background: #111;
-      flex-direction: column;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 1.15rem; font-weight: 700; }
+    .badge {
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.1);
     }
 
-    button {
-      padding: 20px 40px;       /* Bigger size */
-      font-size: 20px;          /* Larger text */
-      cursor: pointer;
-      border: none;
+    .player-wrap {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .player-wrap iframe,
+    .player-wrap video {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    select, input[type="number"], input[type="url"] {
+      background: #0f141e;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
       border-radius: 8px;
-      background: linear-gradient(45deg, #ffcc00, #ff9900);
-      color: #111;
-      font-weight: bold;
-      margin: 20px;
+      font-size: 0.85rem;
     }
-
-    .coin {
-      width: 80px;              /* Bigger coin */
-      height: 80px;
-      background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
-      border-radius: 50%;
-      position: absolute;
-      top: 20%;
-      left: 20%;
-      transform: rotate(0deg);
-      opacity: 0;
+    select {
+      flex: 1;
+      min-width: 200px;
+      font-weight: 600;
+      cursor: pointer;
     }
-
-    /* Rolling + bouncing animation */
-    @keyframes roll {
-      0%   { transform: translateX(0) rotate(0deg); }
-      60%  { transform: translateX(300px) rotate(720deg); }
-      75%  { transform: translateX(300px) rotate(720deg) translateY(180px); }
-      85%  { transform: translateX(300px) rotate(720deg) translateY(200px); }
-      95%  { transform: translateX(300px) rotate(720deg) translateY(190px); }
-      100% { transform: translateX(300px) rotate(720deg) translateY(200px); }
+    .btn {
+      background: #1e2636;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 9px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 600;
     }
+    .btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
 
-    .animate {
-      opacity: 1;
-      animation: roll 3s ease-out infinite; /* infinite loop */
+    .ep-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+      gap: 6px;
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    .ep-btn {
+      background: #1a2130;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .ep-btn.active { background: var(--accent); border-color: var(--accent); }
+
+    .status {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 8px;
+      word-break: break-all;
     }
   </style>
 </head>
 <body>
-  <button onclick="startAnimation()">Start Looping Animation</button>
-  <button onclick="stopAnimation()">Stop Animation</button>
-  <div class="coin" id="coin"></div>
+  <div class="container">
+    <header>
+      <h1>Renegade Immortal (仙逆)</h1>
+      <span class="badge">50/50 Risk • No YT / Dailymotion / Tencent</span>
+    </header>
+
+    <!-- Player Stage (Hardcoded default iframe) -->
+    <div class="player-wrap" id="player-stage">
+      <iframe
+        src="https://player.videasy.net/tv/223911/1/1"
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+        allowfullscreen
+        referrerpolicy="no-referrer"
+      ></iframe>
+    </div>
+
+    <!-- Stream Dropdown & Sandbox Toggle -->
+    <div class="panel">
+      <div class="controls-row">
+        <select id="server-select" onchange="loadEpisode()">
+          <option value="videasy">Server 1: Videasy (Fast)</option>
+          <option value="vidlink">Server 2: VidLink</option>
+          <option value="vidsrc_cc">Server 3: VidSrc.cc</option>
+          <option value="vidking">Server 4: VidKing</option>
+          <option value="autoembed">Server 5: AutoEmbed</option>
+          <option value="embed_su">Server 6: Embed.su</option>
+        </select>
+
+        <label class="toggle" title="Blocks pop-up ads. Turn off if a server stays blank.">
+          <input type="checkbox" id="sandbox-toggle" onchange="loadEpisode()" />
+          Anti-Popup Sandbox
+        </label>
+      </div>
+      <div class="status" id="status-text">Active: https://player.videasy.net/tv/223911/1/1</div>
+    </div>
+
+    <!-- Episode Switcher -->
+    <div class="panel">
+      <div class="controls-row">
+        <strong style="font-size:0.86rem;">Episode:</strong>
+        <button class="btn" onclick="stepEpisode(-1)">← Prev</button>
+        <input type="number" id="ep-input" value="1" min="1" max="200" style="width:76px;" onchange="jumpEpisode()" />
+        <button class="btn" onclick="stepEpisode(1)">Next →</button>
+      </div>
+      <div class="ep-grid" id="ep-grid"></div>
+    </div>
+
+    <!-- Custom URL / HLS / MP4 Loader -->
+    <div class="panel">
+      <div class="controls-row">
+        <input type="url" id="custom-url" style="flex:1;min-width:200px;" placeholder="Paste custom embed, .m3u8, or .mp4 URL" />
+        <button class="btn active" onclick="loadCustom()">Load</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    function startAnimation() {
-      const coin = document.getElementById('coin');
-      coin.classList.add('animate');
+    const TMDB_ID = 223911;
+    const SEASON = 1;
+    let currentEp = 1;
+    let hlsInstance = null;
+
+    const serverUrls = {
+      videasy:   (ep) => `https://player.videasy.net/tv/${TMDB_ID}/${SEASON}/${ep}`,
+      vidlink:   (ep) => `https://vidlink.pro/tv/${TMDB_ID}/${SEASON}/${ep}`,
+      vidsrc_cc: (ep) => `https://vidsrc.cc/v2/embed/tv/${TMDB_ID}/${SEASON}/${ep}`,
+      vidking:   (ep) => `https://www.vidking.net/embed/tv/${TMDB_ID}/${SEASON}/${ep}`,
+      autoembed: (ep) => `https://player.autoembed.cc/embed/tv/${TMDB_ID}/${SEASON}/${ep}`,
+      embed_su:  (ep) => `https://embed.su/embed/tv/${TMDB_ID}/${SEASON}/${ep}`
+    };
+
+    function destroyHLS() {
+      if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
     }
 
-    function stopAnimation() {
-      const coin = document.getElementById('coin');
-      coin.classList.remove('animate');
-      coin.style.opacity = 0; // hide coin when stopped
+    function renderIframe(url) {
+      destroyHLS();
+      const useSandbox = document.getElementById("sandbox-toggle").checked;
+      const sandboxAttr = useSandbox
+        ? 'sandbox="allow-scripts allow-same-origin allow-presentation"'
+        : "";
+
+      document.getElementById("player-stage").innerHTML = `
+        <iframe
+          src="${url}"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+          allowfullscreen
+          referrerpolicy="no-referrer"
+          ${sandboxAttr}
+        ></iframe>`;
+      document.getElementById("status-text").textContent = `Active: ${url}`;
+    }
+
+    function loadEpisode() {
+      const serverKey = document.getElementById("server-select").value;
+      const url = serverUrls[serverKey](currentEp);
+      renderIframe(url);
+      document.getElementById("ep-input").value = currentEp;
+      document.querySelectorAll(".ep-btn").forEach(btn => {
+        btn.classList.toggle("active", Number(btn.dataset.ep) === currentEp);
+      });
+    }
+
+    function stepEpisode(delta) {
+      currentEp = Math.max(1, currentEp + delta);
+      loadEpisode();
+    }
+
+    function jumpEpisode() {
+      const val = parseInt(document.getElementById("ep-input").value, 10);
+      if (val >= 1) { currentEp = val; loadEpisode(); }
+    }
+
+    function loadCustom() {
+      const url = document.getElementById("custom-url").value.trim();
+      if (!url) return;
+      destroyHLS();
+      const stage = document.getElementById("player-stage");
+
+      if (url.toLowerCase().includes(".m3u8")) {
+        stage.innerHTML = `<video id="hls-video" controls autoplay playsinline></video>`;
+        const video = document.getElementById("hls-video");
+        if (Hls.isSupported()) {
+          hlsInstance = new Hls();
+          hlsInstance.loadSource(url);
+          hlsInstance.attachMedia(video);
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = url;
+        }
+        document.getElementById("status-text").textContent = `HLS: ${url}`;
+      } else if (url.toLowerCase().includes(".mp4")) {
+        stage.innerHTML = `<video controls autoplay playsinline><source src="${url}" type="video/mp4" /></video>`;
+        document.getElementById("status-text").textContent = `MP4: ${url}`;
+      } else {
+        renderIframe(url);
+      }
+    }
+
+    // Build Episode Grid (1–76)
+    const grid = document.getElementById("ep-grid");
+    for (let i = 1; i <= 76; i++) {
+      const btn = document.createElement("button");
+      btn.className = `ep-btn ${i === 1 ? "active" : ""}`;
+      btn.textContent = i;
+      btn.dataset.ep = i;
+      btn.onclick = () => { currentEp = i; loadEpisode(); };
+      grid.appendChild(btn);
     }
   </script>
 </body>
