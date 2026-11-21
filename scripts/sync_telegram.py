@@ -9,7 +9,10 @@ results = []
 for ch in CHANNELS:
     r = requests.get(f"https://t.me/s/{ch}", headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
     soup = BeautifulSoup(r.text, "html.parser")
-    for msg in soup.select(".tgme_widget_message_wrap"):
+    msgs = soup.select(".tgme_widget_message_wrap")
+    print(f"[{ch}] HTTP {r.status_code} | messages found: {len(msgs)}")
+
+    for msg in msgs:
         text_el = msg.select_one(".tgme_widget_message_text")
         if not text_el:
             continue
@@ -17,13 +20,11 @@ for ch in CHANNELS:
         if IGNORE_RE.search(text):
             continue
         ep_match = EP_RE.search(text)
-        if not ep_match:
-            continue
         links = [a["href"] for a in text_el.select("a[href]") if "t.me" not in a["href"]]
         post_link = msg.select_one("a.tgme_widget_message_date")
         results.append({
             "channel": ch,
-            "episode": int(ep_match.group(1)),
+            "episode": int(ep_match.group(1)) if ep_match else 0,
             "title": text[:120],
             "mirror_links": links,
             "telegram_post": post_link["href"] if post_link else ""
