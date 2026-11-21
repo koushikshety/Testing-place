@@ -24,36 +24,34 @@ def decode_base64_iframe(encoded_str):
 def fetch_renegade_immortal_rumble():
     report = {"target": SEARCH_URL, "status_code": None, "cloudflare_blocked": False, "episodes_found": []}
 
-    # 1. Find the Renegade Immortal series page
     res = requests.get(SEARCH_URL, headers=HEADERS, timeout=15)
     report["status_code"] = res.status_code
     soup = BeautifulSoup(res.text, "html.parser")
 
     series_link = None
     for a in soup.select("article.bs a"):
-        href = a.get("href", "")
-        if "renegade-immortal" in href.lower():
-            series_link = href
+        href = a.get("href", "").lower()
+        if "renegade-immortal" in href and "movie" not in href and "special" not in href:
+            series_link = a.get("href")
             break
 
     if not series_link:
-        print("[!] Could not find Renegade Immortal series page.")
+        print("[!] Could not find main Renegade Immortal series page.")
         return
 
-    # 2. Grab the latest episode from the series page
+    print(f"[+] Series page: {series_link}")
     s_res = requests.get(series_link, headers=HEADERS, timeout=15)
     s_soup = BeautifulSoup(s_res.text, "html.parser")
     latest_ep = s_soup.select_one(".eplister ul li a")
 
     if not latest_ep:
-        print("[!] Could not find episode list on series page.")
+        print("[!] Could not find episode list.")
         return
 
     ep_url = latest_ep.get("href")
-    ep_title = latest_ep.text.strip().replace("\n", " ")
-    print(f"[+] Found latest episode: {ep_title}")
+    ep_title = " ".join(latest_ep.text.split())
+    print(f"[+] Latest episode: {ep_title}")
 
-    # 3. Extract servers and put Rumble first
     ep_res = requests.get(ep_url, headers=HEADERS, timeout=15)
     ep_soup = BeautifulSoup(ep_res.text, "html.parser")
 
@@ -65,7 +63,6 @@ def fetch_renegade_immortal_rumble():
             if decoded_src:
                 servers.append({"name": opt.text.strip(), "embed_url": decoded_src})
 
-    # Prioritize Rumble at index 0 so dummy_preview.html auto-loads it
     servers.sort(key=lambda s: 0 if "rumble" in s["name"].lower() or "rumble.com" in s["embed_url"].lower() else 1)
 
     report["episodes_found"].append({
@@ -76,7 +73,7 @@ def fetch_renegade_immortal_rumble():
 
     with open("dummy_output.json", "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
-    print(f"[+] Saved {len(servers)} servers to dummy_output.json (Rumble prioritized).")
+    print(f"[+] Saved {len(servers)} servers to dummy_output.json")
 
 if __name__ == "__main__":
     fetch_renegade_immortal_rumble()
