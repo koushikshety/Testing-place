@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test 3: HLS + CORS Proxy</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; max-width: 900px; margin: auto; }
+    input { width: 100%; padding: 8px; margin: 6px 0; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; box-sizing: border-box; }
+    button { padding: 8px 14px; background: #0284c7; color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-right: 8px; }
+    video { width: 100%; margin-top: 12px; border-radius: 8px; background: #000; }
+  </style>
+</head>
+<body>
+  <h2>Test 3: Custom HLS (.m3u8) Player</h2>
+  <input id="workerUrl" placeholder="Your Worker URL (e.g. https://your-proxy.workers.dev/?url=)">
+  <input id="m3u8Url" value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" placeholder="Paste .m3u8 URL">
+  <button onclick="play(false)">Play Direct</button>
+  <button onclick="play(true)">Play via Worker Proxy</button>
+  <video id="video" controls playsinline></video>
+
+  <script>
+    let hls;
+    function play(useProxy) {
+      const raw = document.getElementById("m3u8Url").value.trim();
+      const proxy = document.getElementById("workerUrl").value.trim();
+      const finalUrl = useProxy && proxy ? proxy + encodeURIComponent(raw) : raw;
+      const video = document.getElementById("video");
+      if (hls) hls.destroy();
+
+      if (Hls.isSupported()) {
+        hls = new Hls();
+        hls.loadSource(finalUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = finalUrl;
+        video.play();
+      }
+    }
+  </script>
+</body>
+</html>
