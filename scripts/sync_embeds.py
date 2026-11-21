@@ -6,7 +6,8 @@ QUERIES = [
     "Battle Through the Heavens"
 ]
 IGNORE_RE = re.compile(r"\b(pv|teaser|trailer|preview|reaction|review|amv|edit)\b", re.I)
-EP_RE = re.compile(r"(?:ep|episode|part|\be|#)?\s*0*(\d{1,4})\b", re.I)
+EXPLICIT_EP_RE = re.compile(r"(?:ep|episode|part)[\s._-]*0*(\d{1,4})\b", re.I)
+SHORTHAND_EP_RE = re.compile(r"\b(?:SL2|RI|BTTH)[\s._-]*0*(\d{1,4})\b", re.I)
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 results = []
@@ -26,11 +27,13 @@ for q in QUERIES:
         for item in items:
             claim_id = item.get("claimId", "")
             name = item.get("name", "")
-            title = item.get("title") or name
-            if not claim_id or not name or IGNORE_RE.search(title):
+            title = (item.get("title") or name).strip()
+
+            # Skip blank, purely numeric, or non-episode titles
+            if not claim_id or not name or title.isdigit() or IGNORE_RE.search(title):
                 continue
 
-            ep_match = EP_RE.search(title)
+            ep_match = EXPLICIT_EP_RE.search(title) or SHORTHAND_EP_RE.search(title)
             if not ep_match:
                 continue
 
@@ -53,4 +56,4 @@ for q in QUERIES:
 with open("data/embeds.json", "w", encoding="utf-8") as f:
     json.dump(results, f, indent=2, ensure_ascii=False)
 
-print(f"Saved {len(results)} playable embeds to data/embeds.json")
+print(f"Saved {len(results)} clean embeds to data/embeds.json")
