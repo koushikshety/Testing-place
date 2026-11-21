@@ -1,41 +1,89 @@
-import json, os, requests, xml.etree.ElementTree as ET
+import json, os, re, requests
+import xml.etree.ElementTree as ET
 
-RSS_URL = os.getenv("TEST_RSS_URL", "")
-API_KEY = os.getenv("HOST_API_KEY", "")
-DRY_RUN = os.getenv("DRY_RUN", "true").lower() == "true"
-KEYWORDS = ["renegade immortal", "xian ni", "soul land", "jade dynasty"]
+RSS_URL = os.getenv("TEST_RSS_URL", "").strip()
+API_KEY = os.getenv("HOST_API_KEY", "").strip()
+DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
+OUT_FILE = "data/remote_uploads.json"
+EP_RE = re.compile(r"(?:ep|episode|\be|-)\s*0*(\d{1,4})\b", re.I)
 
 if not RSS_URL:
     print("Set TEST_RSS_URL to test.")
     raise SystemExit(0)
 
-xml_text = requests.get(RSS_URL, timeout=15).text
-root = ET.fromstring(xml_text)
+existing = []
+if os.path.exists(OUT_FILE):
+    try:
+        with open(OUT_FILE, "r", encoding="utf-8") as f:
+            existing = json.load(f)
+    except Exception:
+        existing = []
 
-with open("data/remote_uploads.json", "r", encoding="utf-8") as f:
-    catalog = json.load(f)
-seen = {item["source_link"] for item in catalog}
+seen_sources = {item.get("source_url") for item in existing}
 
-for item in root.findall(".//item")[:25]:
-    title = item.findtext("title", "")
-    link = item.findtext("link", "")
-    if link in seen or not any(k in title.lower() for k in KEYWORDS):
+r = requests.get(RSS_URL, headers={"User-Agent": "Mozilla/5.0"}, timeout=20)
+root = ET.fromstring(r.text)
+
+added = 0
+for item in root.findall(".//item")[:5]:
+    title = (item.findtext("title") or "").strip()
+    link = (item.findtext("link") or "").strip()
+    if not title or not link or link in seen_sources:
         continue
 
-    embed_url = ""
-    if not DRY_RUN and API_KEY:
-        # Generic remote-upload pattern (adjust endpoint/params to match your chosen host's docs)
-        resp = requests.get(
-            "https://api.examplehost.com/api/upload/url",
-            params={"key": API_KEY, "url": link},
+    ep_match = EP_RE.search(title)
+    ep_num = int(ep_match.group(1)) if ep_match else 0
+
+    if DRY_RUN or not API_KEY:
+        existing.insert(0, {
+            "series": "Renegade Immortal",
+            "episode": ep_num,
+            "title": f"{title[:110]} (Dry Run)",
+            "server": "FileMoon",
+            "type": "iframe",
+            "url": "",
+            "source_url": link
+        })
+        seen_sources.add(link)
+        added += 1
+        continue
+
+    if added >= 2:
+        break
+
+    try:
+        resp = requests.post(
+            "https://filemoon.org/api/v1/remote-uploads",
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            json={"url": link, "urls": [link]},
             timeout=20
-        ).json()
-        file_code = resp.get("result", {}).get("filecode", "")
-        embed_url = f"https://examplehost.com/e/{file_code}" if file_code else ""
+        )
+        print(f"[FileMoon] HTTP {resp.status_code} | {resp.text[:250]}")
+        data = resp.json() if resp.text.strip().startswith("{") else {}
+        jobs = data.get("data") or []
+        job = jobs[0] if isinstance(jobs, list) and jobs else (jobs if isinstance(jobs, dict) else {})
+        file_id = job.get("file_id") or job.get("id") or ""
 
-    catalog.insert(0, {"title": title, "source_link": link, "embed_url": embed_url, "dry_run": DRY_RUN})
-    seen.add(link)
+        if resp.status_code in (200, 201, 202) and file_id:
+            existing.insert(0, {
+                "series": "Renegade Immortal",
+                "episode": ep_num,
+                "title": title[:110],
+                "server": "FileMoon",
+                "type": "iframe",
+                "url": f"https://filemoon.org/e/{file_id}",
+                "source_url": link
+            })
+            seen_sources.add(link)
+            added += 1
+    except Exception as e:
+        print(f"[FileMoon] Error: {e}")
 
-with open("data/remote_uploads.json", "w", encoding="utf-8") as f:
-    json.dump(catalog[:30], f, indent=2)
-print(f"Catalog now has {len(catalog[:30])} entries (DRY_RUN={DRY_RUN}).")
+with open(OUT_FILE, "w", encoding="utf-8") as f:
+    json.dump(existing[:50], f, indent=2, ensure_ascii=False)
+
+print(f"Done. Added {added} items. Total in {OUT_FILE}: {len(existing[:50])}")
