@@ -1,11 +1,9 @@
 import json, re, requests
 from bs4 import BeautifulSoup
 
-# Replace with any public Telegram channel username you want to test
-CHANNELS = ["example_donghua_channel"]
+CHANNELS = ["D2DDonghua", "SoulLand2UTS369", "D2DThroneOfSeal", "AnimationWorld02"]
 IGNORE_RE = re.compile(r"\b(pv|teaser|trailer|preview|raw)\b", re.I)
-EP_RE = re.compile(r"(?:ep|episode)\s*0*(\d+)", re.I)
-LINK_RE = re.compile(r"https?://[^\s<>\"']+")
+EP_RE = re.compile(r"(?:ep|episode|\be)\s*0*(\d+)", re.I)
 
 results = []
 for ch in CHANNELS:
