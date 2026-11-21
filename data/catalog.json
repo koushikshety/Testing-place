@@ -321,6 +321,18 @@
   },
   {
     "series": "Battle Through the Heavens",
+    "episode": 170,
+    "title": "AnimeXin.dev-btth-s5-ep-170-eng",
+    "servers": [
+      {
+        "name": "Odysee",
+        "type": "iframe",
+        "url": "https://odysee.com/$/embed/AnimeXin.dev-btth-s5-ep-170-eng/bb8420b8f7af204f0b9bb3acdfa572145634e686"
+      }
+    ]
+  },
+  {
+    "series": "Battle Through the Heavens",
     "episode": 167,
     "title": "AnimeXin.dev-btth-s5-ep-167-eng",
     "servers": [
@@ -1252,6 +1264,18 @@
         "name": "Odysee",
         "type": "iframe",
         "url": "https://odysee.com/$/embed/renegade-immortal-ep-01-e-02/f0305d0bc9f81c57d97ccd464036392c679f7604"
+      }
+    ]
+  },
+  {
+    "series": "Soul Land 2",
+    "episode": 180,
+    "title": "SL2180",
+    "servers": [
+      {
+        "name": "Odysee",
+        "type": "iframe",
+        "url": "https://odysee.com/$/embed/SL2180/1ad7b378223c6acb0aa5bbde735d09d6aa614cc2"
       }
     ]
   },
@@ -2299,6 +2323,18 @@
         "name": "Odysee",
         "type": "iframe",
         "url": "https://odysee.com/$/embed/Soul-Land-2-Peerless-Tang-Sect-2-Ep-56/e1ded8810594ff3f87badba7e6c4dae81a9855ba"
+      }
+    ]
+  },
+  {
+    "series": "Soul Land 2",
+    "episode": 49,
+    "title": "A-FRIEND-IN-NEED-Sly-2-Band-of-Thieves-HD-PS3-Part-49",
+    "servers": [
+      {
+        "name": "Odysee",
+        "type": "iframe",
+        "url": "https://odysee.com/$/embed/A-FRIEND-IN-NEED-Sly-2-Band-of-Thieves-HD-PS3-Part-49/6cd3afa45e5e0fb2db2c8b3eb229df9d3a7132f3"
       }
     ]
   },
