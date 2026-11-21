@@ -3,7 +3,7 @@ import json
 from bs4 import BeautifulSoup
 import requests
 
-TARGET_URL = "https://donghuastream.org/"
+SEARCH_URL = "https://donghuastream.org/?s=renegade+immortal"
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Linux; Android 14; iQOO Neo 10) AppleWebKit/537.36 "
@@ -21,53 +21,62 @@ def decode_base64_iframe(encoded_str):
     except Exception:
         return None
 
-def inspect_site():
-    report = {"target": TARGET_URL, "status_code": None, "cloudflare_blocked": False, "episodes_found": []}
-    try:
-        res = requests.get(TARGET_URL, headers=HEADERS, timeout=15)
-        report["status_code"] = res.status_code
+def fetch_renegade_immortal_rumble():
+    report = {"target": SEARCH_URL, "status_code": None, "cloudflare_blocked": False, "episodes_found": []}
 
-        if res.status_code in (403, 503) or "Just a moment..." in res.text:
-            report["cloudflare_blocked"] = True
-            print(f"[!] Blocked by WAF/Cloudflare (HTTP {res.status_code}).")
-            with open("dummy_output.json", "w", encoding="utf-8") as f:
-                json.dump(report, f, indent=2)
-            return
+    # 1. Find the Renegade Immortal series page
+    res = requests.get(SEARCH_URL, headers=HEADERS, timeout=15)
+    report["status_code"] = res.status_code
+    soup = BeautifulSoup(res.text, "html.parser")
 
-        soup = BeautifulSoup(res.text, "html.parser")
-        cards = soup.select("article.bs a")[:5]
-        print(f"[+] HTTP {res.status_code} OK — Found {len(cards)} cards.")
+    series_link = None
+    for a in soup.select("article.bs a"):
+        href = a.get("href", "")
+        if "renegade-immortal" in href.lower():
+            series_link = href
+            break
 
-        for card in cards:
-            ep_url = card.get("href")
-            title = card.get("title") or card.text.strip()
-            if not ep_url:
-                continue
+    if not series_link:
+        print("[!] Could not find Renegade Immortal series page.")
+        return
 
-            ep_data = {"title": title, "url": ep_url, "servers": []}
-            if len(report["episodes_found"]) == 0:
-                ep_res = requests.get(ep_url, headers=HEADERS, timeout=15)
-                ep_soup = BeautifulSoup(ep_res.text, "html.parser")
+    # 2. Grab the latest episode from the series page
+    s_res = requests.get(series_link, headers=HEADERS, timeout=15)
+    s_soup = BeautifulSoup(s_res.text, "html.parser")
+    latest_ep = s_soup.select_one(".eplister ul li a")
 
-                default_iframe = ep_soup.select_one(".player-embed iframe, #pembed iframe")
-                if default_iframe and default_iframe.get("src"):
-                    ep_data["servers"].append({"name": "Default Player", "embed_url": default_iframe.get("src")})
+    if not latest_ep:
+        print("[!] Could not find episode list on series page.")
+        return
 
-                for opt in ep_soup.select("select.mirror option"):
-                    val = opt.get("value", "").strip()
-                    if val:
-                        decoded_src = decode_base64_iframe(val)
-                        if decoded_src:
-                            ep_data["servers"].append({"name": opt.text.strip(), "embed_url": decoded_src})
+    ep_url = latest_ep.get("href")
+    ep_title = latest_ep.text.strip().replace("\n", " ")
+    print(f"[+] Found latest episode: {ep_title}")
 
-            report["episodes_found"].append(ep_data)
-    except Exception as e:
-        report["error"] = str(e)
-        print(f"[!] Request failed: {e}")
+    # 3. Extract servers and put Rumble first
+    ep_res = requests.get(ep_url, headers=HEADERS, timeout=15)
+    ep_soup = BeautifulSoup(ep_res.text, "html.parser")
+
+    servers = []
+    for opt in ep_soup.select("select.mirror option"):
+        val = opt.get("value", "").strip()
+        if val:
+            decoded_src = decode_base64_iframe(val)
+            if decoded_src:
+                servers.append({"name": opt.text.strip(), "embed_url": decoded_src})
+
+    # Prioritize Rumble at index 0 so dummy_preview.html auto-loads it
+    servers.sort(key=lambda s: 0 if "rumble" in s["name"].lower() or "rumble.com" in s["embed_url"].lower() else 1)
+
+    report["episodes_found"].append({
+        "title": ep_title,
+        "url": ep_url,
+        "servers": servers
+    })
 
     with open("dummy_output.json", "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
-    print("[+] Saved diagnostic results to dummy_output.json")
+    print(f"[+] Saved {len(servers)} servers to dummy_output.json (Rumble prioritized).")
 
 if __name__ == "__main__":
-    inspect_site()
+    fetch_renegade_immortal_rumble()

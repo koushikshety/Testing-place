@@ -1,53 +1,29 @@
 {
-  "target": "https://donghuastream.org/",
+  "target": "https://donghuastream.org/?s=renegade+immortal",
   "status_code": 200,
   "cloudflare_blocked": false,
   "episodes_found": [
     {
-      "title": "Soul Land 2 The Peerless Tang Sect Episode 180 Multiple Subtitles",
-      "url": "https://donghuastream.org/soul-land-2-the-peerless-tang-sect-episode-180-multiple-subtitles/",
+      "title": "Part 3 final(4k)(Good Sub)+(Download Link)Renegade Immortal Movie 2: part3 Battle of Immortal SlayerOctober 1, 2026",
+      "url": "https://donghuastream.org/renegade-immortal-movie-2-part3-battle-of-immortal-slayer/",
       "servers": [
         {
-          "name": "Default Player",
-          "embed_url": "about:blank"
+          "name": "Rumble server",
+          "embed_url": "https://rumble.com/embed/v7e9unq/?pub=4qowyg"
         },
         {
-          "name": "Dailymotion",
-          "embed_url": "https://geo.dailymotion.com/player/x19jsm.html?video=k4c32qFvD2TOOxMUwyu"
-        },
-        {
-          "name": "Rumble",
-          "embed_url": "https://rumble.com/embed/v7gg4yg/?pub=4qowyg"
+          "name": "Dailymotion server",
+          "embed_url": "https://geo.dailymotion.com/player/x19jsm.html?video=k5sU69L3u7Htu9KPmrU"
         },
         {
           "name": "All Sub Player",
-          "embed_url": "https://play.streamplay.co.in/embed/9fnFAZQKobrzqGY"
+          "embed_url": "https://play.streamplay.co.in/embed/RjauecvqLfMxHr6"
         },
         {
-          "name": "Ok ru",
-          "embed_url": "//ok.ru/videoembed/16331628874419?nochat=1"
+          "name": "Ok ru English",
+          "embed_url": "//ok.ru/videoembed/15747008236211?nochat=1"
         }
       ]
-    },
-    {
-      "title": "The Demon Hunter Season 3 Episode 35[104] Multiple Subtitles",
-      "url": "https://donghuastream.org/the-demon-hunter-season-3-episode-35104-multiple-subtitles/",
-      "servers": []
-    },
-    {
-      "title": "The Great Ruler Season 2 Episode 48 [100] Multiple Subtitles",
-      "url": "https://donghuastream.org/the-great-ruler-season-2-episode-48-100-multiple-subtitles/",
-      "servers": []
-    },
-    {
-      "title": "Jade Dynasty Season 4 Episode 16 Multiple Subtitles",
-      "url": "https://donghuastream.org/jade-dynasty-season-4-episode-16-multiple-subtitles/",
-      "servers": []
-    },
-    {
-      "title": "Soul Land 2 The Peerless Tang Sect Episode 180 Multiple Subtitles",
-      "url": "https://donghuastream.org/soul-land-2-the-peerless-tang-sect-episode-180-multiple-subtitles/",
-      "servers": []
     }
   ]
 }
