@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test 1: TMDB Multi-Embed</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; max-width: 900px; margin: auto; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    button, select { padding: 8px 12px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; cursor: pointer; }
+    button.active { background: #0284c7; border-color: #38bdf8; }
+    iframe { width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px; background: #000; }
+  </style>
+</head>
+<body>
+  <h2>Test 1: TMDB Multi-Embed (Auto-Unlock)</h2>
+  <div class="controls">
+    <select id="epSelect"></select>
+    <div id="serverBtns"></div>
+  </div>
+  <iframe id="player" allowfullscreen referrerpolicy="origin"></iframe>
+
+  <script>
+    // Example: Renegade Immortal (TMDB ID: 223911)
+    const SHOW = { tmdbId: 223911, season: 1, startDate: "2023-09-25T02:00:00Z", totalCap: 150 };
+    const SERVERS = [
+      { name: "VidLink",  url: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}` },
+      { name: "Videasy",  url: (id, s, e) => `https://player.videasy.net/tv/${id}/${s}/${e}` },
+      { name: "VidSrc",   url: (id, s, e) => `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` },
+      { name: "AutoEmbed",url: (id, s, e) => `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}` }
+    ];
+
+    const weeksElapsed = Math.floor((Date.now() - new Date(SHOW.startDate)) / (7 * 86400000)) + 1;
+    const unlockedEps = Math.min(Math.max(weeksElapsed, 1), SHOW.totalCap);
+
+    const epSelect = document.getElementById("epSelect");
+    for (let i = unlockedEps; i >= 1; i--) {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = `Episode ${i}`;
+      epSelect.appendChild(opt);
+    }
+
+    let currentServer = 0;
+    const serverBtns = document.getElementById("serverBtns");
+    SERVERS.forEach((srv, idx) => {
+      const btn = document.createElement("button");
+      btn.textContent = srv.name;
+      btn.onclick = () => { currentServer = idx; loadPlayer(); };
+      serverBtns.appendChild(btn);
+    });
+
+    function loadPlayer() {
+      const ep = epSelect.value;
+      document.getElementById("player").src = SERVERS[currentServer].url(SHOW.tmdbId, SHOW.season, ep);
+      [...serverBtns.children].forEach((b, i) => b.classList.toggle("active", i === currentServer));
+    }
+
+    epSelect.onchange = loadPlayer;
+    loadPlayer();
+  </script>
+</body>
+</html>
