@@ -1,173 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rumble Anime & Donghua Stream</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donghua Stream Test Lab</title>
   <style>
-    :root { --bg: #0d1015; --card: #161b24; --border: #262e3d; --accent: #85c742; --text: #eef1f6; --muted: #9aa4b2; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 16px; max-width: 960px; margin: auto; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-    h1 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
-    .badge { background: var(--accent); color: #0d1015; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; }
-    .player-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 10px; }
-    .player-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-    .now-playing { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.92rem; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-    .filter-btn { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
-    .filter-btn.active { background: var(--accent); color: #0d1015; border-color: var(--accent); }
-    .search-box { flex: 1; min-width: 180px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 0.9rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-bottom: 24px; }
-    .ep-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; transition: border-color 0.15s; }
-    .ep-card:hover, .ep-card.playing { border-color: var(--accent); }
-    .ep-title { font-size: 0.92rem; font-weight: 600; margin-bottom: 6px; line-height: 1.35; }
-    .ep-meta { font-size: 0.75rem; color: var(--muted); display: flex; justify-content: space-between; }
-    .add-panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
-    .add-panel h3 { font-size: 0.95rem; margin-bottom: 10px; }
-    .form-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .form-row input, .form-row select { flex: 1; min-width: 160px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
-    .add-btn { background: var(--accent); color: #0d1015; border: 0; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-    .empty { color: var(--muted); font-size: 0.9rem; padding: 12px 0; }
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; max-width: 720px; margin: auto; }
+    a { display: block; padding: 14px 16px; margin: 10px 0; background: #1e293b; color: #38bdf8; text-decoration: none; border-radius: 8px; border: 1px solid #334155; }
+    a:hover { background: #334155; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Rumble Stream <span class="badge">Rumble Only</span></h1>
-  </header>
-
-  <div class="player-wrap">
-    <iframe id="rumblePlayer" referrerpolicy="no-referrer" allowfullscreen></iframe>
-  </div>
-
-  <div class="now-playing">
-    <span id="nowPlayingTitle">Select an episode to play</span>
-    <span id="nowPlayingType" class="badge" style="display:none;"></span>
-  </div>
-
-  <div class="controls">
-    <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
-    <button class="filter-btn" onclick="setFilter('anime', this)">Anime</button>
-    <button class="filter-btn" onclick="setFilter('donghua', this)">Chinese Anime (Donghua)</button>
-    <input id="searchInput" class="search-box" type="text" placeholder="Search title..." oninput="renderList()" />
-  </div>
-
-  <div id="episodeGrid" class="grid"></div>
-
-  <div class="add-panel">
-    <h3>+ Add Rumble Stream (Saved Locally)</h3>
-    <div class="form-row">
-      <input id="newTitle" type="text" placeholder="Episode title (e.g. Renegade Immortal Ep 167)" />
-      <input id="newUrl" type="text" placeholder="Rumble embed URL (https://rumble.com/embed/...)" />
-      <select id="newCategory">
-        <option value="donghua">Chinese Anime (Donghua)</option>
-        <option value="anime">Anime (Japanese)</option>
-      </select>
-      <button class="add-btn" onclick="addStream()">Add</button>
-    </div>
-  </div>
-
-  <script>
-    let allStreams = [];
-    let currentFilter = 'all';
-    let currentUrl = '';
-
-    function isRumbleUrl(url) {
-      return typeof url === 'string' && url.toLowerCase().includes('rumble.com/embed/');
-    }
-
-    async function loadStreams() {
-      let fetched = [];
-      try {
-        const res = await fetch('./rumble_catalog.json?t=' + Date.now());
-        if (res.ok) fetched = await res.json();
-      } catch (e) {
-        console.warn('Could not load rumble_catalog.json:', e);
-      }
-
-      const saved = JSON.parse(localStorage.getItem('rumble_only_streams') || '[]');
-      const seen = new Set();
-
-      allStreams = [...saved, ...fetched].filter(item => {
-        if (!isRumbleUrl(item.embed_url) || seen.has(item.embed_url)) return false;
-        seen.add(item.embed_url);
-        return true;
-      });
-
-      renderList();
-      if (allStreams.length > 0 && !currentUrl) playStream(allStreams[0]);
-    }
-
-    function setFilter(type, btn) {
-      currentFilter = type;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderList();
-    }
-
-    function playStream(item) {
-      currentUrl = item.embed_url;
-      document.getElementById('rumblePlayer').src = item.embed_url;
-      document.getElementById('nowPlayingTitle').textContent = item.title;
-      const badge = document.getElementById('nowPlayingType');
-      badge.style.display = 'inline-block';
-      badge.textContent = item.category === 'donghua' ? 'Chinese Anime' : 'Anime';
-      renderList();
-    }
-
-    function renderList() {
-      const grid = document.getElementById('episodeGrid');
-      const query = document.getElementById('searchInput').value.trim().toLowerCase();
-
-      const filtered = allStreams.filter(item => {
-        const matchesCat = currentFilter === 'all' || item.category === currentFilter;
-        const matchesQuery = !query || item.title.toLowerCase().includes(query);
-        return matchesCat && matchesQuery;
-      });
-
-      if (!filtered.length) {
-        grid.innerHTML = '<div class="empty">No Rumble streams found in this category.</div>';
-        return;
-      }
-
-      grid.innerHTML = '';
-      filtered.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'ep-card' + (item.embed_url === currentUrl ? ' playing' : '');
-        card.innerHTML = `
-          <div class="ep-title">${item.title}</div>
-          <div class="ep-meta">
-            <span>${item.category === 'donghua' ? 'Chinese Anime' : 'Anime'}</span>
-            <span>Rumble</span>
-          </div>
-        `;
-        card.onclick = () => playStream(item);
-        grid.appendChild(card);
-      });
-    }
-
-    function addStream() {
-      const title = document.getElementById('newTitle').value.trim();
-      const url = document.getElementById('newUrl').value.trim();
-      const category = document.getElementById('newCategory').value;
-
-      if (!title || !isRumbleUrl(url)) {
-        alert('Please enter a title and a valid Rumble embed URL (https://rumble.com/embed/...).');
-        return;
-      }
-
-      const saved = JSON.parse(localStorage.getItem('rumble_only_streams') || '[]');
-      const newItem = { title, category, embed_url: url };
-      saved.unshift(newItem);
-      localStorage.setItem('rumble_only_streams', JSON.stringify(saved));
-
-      document.getElementById('newTitle').value = '';
-      document.getElementById('newUrl').value = '';
-      loadStreams();
-      playStream(newItem);
-    }
-
-    loadStreams();
-  </script>
+  <h1>Donghua Stream Test Lab</h1>
+  <a href="test_1_tmdb.html">1. TMDB Multi-Embed + Schedule Auto-Unlock</a>
+  <a href="test_2_telegram.html">2. Telegram Channel-to-JSON Pipeline</a>
+  <a href="test_3_hls.html">3. HLS (.m3u8) + Cloudflare Worker Proxy</a>
+  <a href="test_4_remote.html">4. RSS-to-Video-Host Remote Upload</a>
+  <a href="test_5_official.html">5. Official Free-Tier &amp; Odysee Embeds</a>
 </body>
 </html>
