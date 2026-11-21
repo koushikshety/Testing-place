@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test 2: Telegram Feed</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; max-width: 800px; margin: auto; }
+    .card { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; }
+    a { color: #38bdf8; margin-right: 12px; }
+  </style>
+</head>
+<body>
+  <h2>Test 2: Telegram Channel Sync</h2>
+  <div id="list">Loading...</div>
+  <script>
+    fetch("data/telegram_feed.json?v=" + Date.now())
+      .then(r => r.json())
+      .then(items => {
+        document.getElementById("list").innerHTML = items.length
+          ? items.map(i => `
+              <div class="card">
+                <strong>EP ${i.episode}</strong> — ${i.title}<br><br>
+                <a href="${i.telegram_post}" target="_blank">Telegram Post</a>
+                ${i.mirror_links.map((u, n) => `<a href="${u}" target="_blank">Mirror ${n+1}</a>`).join("")}
+              </div>`).join("")
+          : "No items yet. Run scripts/sync_telegram.py first.";
+      });
+  </script>
+</body>
+</html>
