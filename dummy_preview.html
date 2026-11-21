@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dummy Stream Diagnostic Sandbox</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f1115; color: #e4e6eb; padding: 16px; max-width: 800px; margin: auto; }
+    .status { padding: 12px; border-radius: 8px; background: #1c1f26; margin-bottom: 16px; }
+    .server-btn { background: #2b313e; color: #fff; border: 1px solid #3f4756; padding: 8px 12px; margin: 4px; border-radius: 6px; cursor: pointer; }
+    .server-btn:hover { background: #3b82f6; }
+    .player-box { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 8px; overflow: hidden; margin-top: 12px; }
+    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    pre { background: #16181d; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h2>DonghuaStream Dummy Check</h2>
+  <div id="status" class="status">Loading dummy_output.json...</div>
+  <div id="controls"></div>
+
+  <div class="player-box">
+    <iframe id="testFrame" referrerpolicy="no-referrer" allowfullscreen></iframe>
+  </div>
+
+  <h3>Raw JSON Diagnostic Output</h3>
+  <pre id="rawJson"></pre>
+
+  <script>
+    async function loadReport() {
+      const statusEl = document.getElementById('status');
+      const controlsEl = document.getElementById('controls');
+      const frame = document.getElementById('testFrame');
+      const rawEl = document.getElementById('rawJson');
+
+      try {
+        const res = await fetch('./dummy_output.json');
+        const data = await res.json();
+        rawEl.textContent = JSON.stringify(data, null, 2);
+
+        const firstEp = data.episodes_found?.[0];
+        const validServers = (firstEp?.servers || []).filter(
+          s => s.embed_url && s.embed_url !== 'about:blank'
+        );
+
+        if (!validServers.length) {
+          statusEl.innerHTML = '<strong>No valid embed servers found.</strong>';
+          return;
+        }
+
+        statusEl.innerHTML = `<strong>Testing:</strong> ${firstEp.title} (${validServers.length} servers)`;
+
+        validServers.forEach((srv, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'server-btn';
+          btn.textContent = srv.name;
+          btn.onclick = () => {
+            let url = srv.embed_url.startsWith('//') ? 'https:' + srv.embed_url : srv.embed_url;
+            frame.src = url;
+          };
+          controlsEl.appendChild(btn);
+          if (idx === 0) btn.click();
+        });
+      } catch (err) {
+        statusEl.textContent = 'Error loading dummy_output.json: ' + err.message;
+      }
+    }
+    loadReport();
+  </script>
+</body>
+</html>
