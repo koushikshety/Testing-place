@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test 5: Official &amp; Decentralized</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; max-width: 850px; margin: auto; }
+    .links { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    a { padding: 10px 14px; background: #059669; color: #fff; text-decoration: none; border-radius: 6px; }
+    input { width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; box-sizing: border-box; }
+    iframe { width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px; background: #000; }
+  </style>
+</head>
+<body>
+  <h2>Test 5: Official Free-Tier &amp; Odysee Embed</h2>
+  <div class="links">
+    <a href="https://wetv.vip/" target="_blank">WeTV Official</a>
+    <a href="https://www.bilibili.tv/" target="_blank">Bilibili.tv</a>
+    <a href="https://www.iq.com/" target="_blank">iQIYI</a>
+  </div>
+  <input id="odyseeUrl" placeholder="Paste Odysee embed URL (https://odysee.com/$/embed/...)" oninput="document.getElementById('odyseeFrame').src=this.value">
+  <iframe id="odyseeFrame" allowfullscreen></iframe>
+</body>
+</html>
