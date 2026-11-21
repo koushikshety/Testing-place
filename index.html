@@ -3,248 +3,71 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Donghua 3-in-1 Dummy Tester</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <title>Dummy Stream Diagnostic Sandbox</title>
   <style>
-    :root {
-      --bg: #0b0e14; --card: #141923; --border: #242d3d;
-      --accent: #e11d48; --text: #f1f5f9; --muted: #94a3b8; --green: #22c55e;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 14px; }
-    .container { max-width: 900px; margin: 0 auto; }
-    h1 { font-size: 1.15rem; margin-bottom: 10px; }
-    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
-    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    input, select {
-      background: #0f141e; border: 1px solid var(--border); color: var(--text);
-      padding: 8px 10px; border-radius: 7px; font-size: 0.84rem; flex: 1; min-width: 160px;
-    }
-    .btn {
-      background: #1e2636; color: var(--text); border: 1px solid var(--border);
-      padding: 8px 12px; border-radius: 7px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
-    }
-    .btn.primary { background: var(--accent); border-color: var(--accent); }
-    .btn.danger { color: #f87171; border-color: rgba(248,113,113,0.4); }
-    .player-wrap {
-      width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px;
-      overflow: hidden; border: 1px solid var(--border); margin-bottom: 12px;
-    }
-    .player-wrap video, .player-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
-    .mirror-item {
-      display: flex; justify-content: space-between; align-items: center; gap: 8px;
-      background: #1a2130; padding: 8px 10px; border-radius: 7px; margin-top: 8px; font-size: 0.82rem;
-    }
-    .badge { font-size: 0.7rem; padding: 2px 7px; border-radius: 99px; background: #242d3d; color: var(--muted); }
-    .status { font-size: 0.76rem; color: var(--muted); margin-top: 8px; word-break: break-all; }
-    label.toggle { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); cursor: pointer; }
+    body { font-family: system-ui, sans-serif; background: #0f1115; color: #e4e6eb; padding: 16px; max-width: 800px; margin: auto; }
+    .status { padding: 12px; border-radius: 8px; background: #1c1f26; margin-bottom: 16px; }
+    .server-btn { background: #2b313e; color: #fff; border: 1px solid #3f4756; padding: 8px 12px; margin: 4px; border-radius: 6px; cursor: pointer; }
+    .server-btn:hover { background: #3b82f6; }
+    .player-box { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 8px; overflow: hidden; margin-top: 12px; }
+    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    pre { background: #16181d; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Renegade Immortal — 3-in-1 Prototype (TG + CF Proxy + Firebase)</h1>
+  <h2>DonghuaStream Dummy Check</h2>
+  <div id="status" class="status">Loading dummy_output.json...</div>
+  <div id="controls"></div>
 
-    <!-- 1. Backend Config -->
-    <div class="panel">
-      <div class="row">
-        <input id="fb-url" placeholder="Firebase RTDB URL (e.g. https://your-app.firebaseio.com) — leave blank for local dummy" />
-        <input id="cf-url" placeholder="Cloudflare Worker URL (e.g. https://proxy.you.workers.dev)" />
-        <button class="btn primary" onclick="saveConfig()">Save & Reload</button>
-      </div>
-      <div class="status" id="mode-status">Mode: Local Dummy Storage (add Firebase URL to sync live)</div>
-    </div>
-
-    <!-- 2. Video Player -->
-    <div class="player-wrap" id="player-stage"></div>
-
-    <!-- 3. Episode & Proxy Controls -->
-    <div class="panel">
-      <div class="row">
-        <select id="ep-select" onchange="loadMirrors()" style="max-width:160px;">
-          <option value="ep1">Episode 1</option>
-          <option value="ep2">Episode 2</option>
-          <option value="ep3">Episode 3</option>
-        </select>
-        <label class="toggle">
-          <input type="checkbox" id="use-proxy" /> Route through Cloudflare Worker Proxy
-        </label>
-      </div>
-      <div class="status" id="play-status">Select a mirror below to test playback.</div>
-      <div id="mirror-list"></div>
-    </div>
-
-    <!-- 4. Community Mirror Submission -->
-    <div class="panel">
-      <div style="font-size:0.84rem;font-weight:600;margin-bottom:8px;">Submit New Mirror to Vault</div>
-      <div class="row">
-        <select id="m-type" style="max-width:150px;">
-          <option value="hls">HLS (.m3u8)</option>
-          <option value="mp4">Direct (.mp4)</option>
-          <option value="tg">Telegram file_id</option>
-          <option value="iframe">Iframe Embed</option>
-        </select>
-        <input id="m-label" placeholder="Label (e.g. Server 1 - 1080p)" style="max-width:180px;" />
-        <input id="m-val" placeholder="Paste URL or Telegram file_id" />
-        <button class="btn primary" onclick="addMirror()">+ Add</button>
-      </div>
-    </div>
+  <div class="player-box">
+    <!-- referrerpolicy="no-referrer" helps bypass basic hotlink blocks -->
+    <iframe id="testFrame" referrerpolicy="no-referrer" allowfullscreen></iframe>
   </div>
 
+  <h3>Raw JSON Diagnostic Output</h3>
+  <pre id="rawJson"></pre>
+
   <script>
-    let hls = null;
-    const SHOW_ID = "renegade_immortal";
+    async function loadReport() {
+      const statusEl = document.getElementById('status');
+      const controlsEl = document.getElementById('controls');
+      const frame = document.getElementById('testFrame');
+      const rawEl = document.getElementById('rawJson');
 
-    // Default dummy mirrors so you can test immediately
-    const defaultDummy = {
-      ep1: {
-        m1: { label: "Dummy HLS Test Stream", type: "hls", value: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", reports: 0 },
-        m2: { label: "Dummy MP4 Clip", type: "mp4", value: "https://www.w3schools.com/html/mov_bbb.mp4", reports: 0 }
-      }
-    };
+      try {
+        const res = await fetch('./dummy_output.json');
+        const data = await res.json();
+        rawEl.textContent = JSON.stringify(data, null, 2);
 
-    function getCfg() {
-      return {
-        fb: (localStorage.getItem("cfg_fb") || "").replace(/\/$/, ""),
-        cf: (localStorage.getItem("cfg_cf") || "").replace(/\/$/, "")
-      };
-    }
-
-    function saveConfig() {
-      localStorage.setItem("cfg_fb", document.getElementById("fb-url").value.trim());
-      localStorage.setItem("cfg_cf", document.getElementById("cf-url").value.trim());
-      init();
-    }
-
-    async function fetchMirrors(ep) {
-      const { fb } = getCfg();
-      if (!fb) {
-        const local = JSON.parse(localStorage.getItem("dummy_db") || JSON.stringify(defaultDummy));
-        return local[ep] || {};
-      }
-      const res = await fetch(`${fb}/mirrors/${SHOW_ID}/${ep}.json`);
-      return (await res.json()) || {};
-    }
-
-    async function loadMirrors() {
-      const ep = document.getElementById("ep-select").value;
-      const list = document.getElementById("mirror-list");
-      list.innerHTML = `<div class="status">Loading mirrors...</div>`;
-
-      const mirrors = await fetchMirrors(ep);
-      const entries = Object.entries(mirrors).filter(([, m]) => (m.reports || 0) < 3);
-
-      if (!entries.length) {
-        list.innerHTML = `<div class="status">No working mirrors for ${ep}. Add one below!</div>`;
-        return;
-      }
-
-      list.innerHTML = entries.map(([id, m]) => `
-        <div class="mirror-item">
-          <div>
-            <strong>${m.label}</strong>
-            <span class="badge">${m.type.toUpperCase()}</span>
-            ${m.reports ? `<span class="badge">⚠ ${m.reports}</span>` : ""}
-          </div>
-          <div class="row">
-            <button class="btn primary" onclick='playMirror(${JSON.stringify(m)})'>▶ Play</button>
-            <button class="btn danger" onclick="reportMirror('${id}', ${m.reports || 0})">Report</button>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function playMirror(m) {
-      if (hls) { hls.destroy(); hls = null; }
-      const { cf } = getCfg();
-      const useProxy = document.getElementById("use-proxy").checked;
-      const stage = document.getElementById("player-stage");
-      let finalUrl = m.value;
-
-      if (m.type === "tg") {
-        if (!cf) return alert("Enter your Cloudflare Worker URL first to stream Telegram file_ids.");
-        finalUrl = `${cf}/?tg=${encodeURIComponent(m.value)}`;
-      } else if (useProxy && m.type !== "iframe") {
-        if (!cf) return alert("Enter your Cloudflare Worker URL first to use the proxy.");
-        finalUrl = `${cf}/?url=${encodeURIComponent(m.value)}`;
-      }
-
-      document.getElementById("play-status").textContent = `Playing: ${finalUrl}`;
-
-      if (m.type === "iframe") {
-        stage.innerHTML = `<iframe src="${finalUrl}" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
-      } else if (m.type === "hls") {
-        stage.innerHTML = `<video id="vid" controls autoplay playsinline></video>`;
-        const vid = document.getElementById("vid");
-        if (Hls.isSupported()) {
-          hls = new Hls();
-          hls.loadSource(finalUrl);
-          hls.attachMedia(vid);
-        } else {
-          vid.src = finalUrl;
+        if (data.cloudflare_blocked) {
+          statusEl.innerHTML = `<strong>Blocked:</strong> HTTP ${data.status_code} (Cloudflare/WAF challenge triggered).`;
+          return;
         }
-      } else {
-        // MP4 or Telegram stream
-        stage.innerHTML = `<video controls autoplay playsinline><source src="${finalUrl}" type="video/mp4" /></video>`;
-      }
-    }
 
-    async function addMirror() {
-      const ep = document.getElementById("ep-select").value;
-      const mirror = {
-        type: document.getElementById("m-type").value,
-        label: document.getElementById("m-label").value.trim() || "Community Mirror",
-        value: document.getElementById("m-val").value.trim(),
-        reports: 0
-      };
-      if (!mirror.value) return;
+        const firstEp = data.episodes_found?.[0];
+        if (!firstEp || !firstEp.servers?.length) {
+          statusEl.innerHTML = `<strong>Status HTTP ${data.status_code}:</strong> Page loaded, but no iframe servers matched selectors.`;
+          return;
+        }
 
-      const { fb } = getCfg();
-      if (!fb) {
-        const local = JSON.parse(localStorage.getItem("dummy_db") || JSON.stringify(defaultDummy));
-        local[ep] = local[ep] || {};
-        local[ep]["m_" + Date.now()] = mirror;
-        localStorage.setItem("dummy_db", JSON.stringify(local));
-      } else {
-        await fetch(`${fb}/mirrors/${SHOW_ID}/${ep}.json`, {
-          method: "POST",
-          body: JSON.stringify(mirror)
+        statusEl.innerHTML = `<strong>Testing Episode:</strong> ${firstEp.title} (${firstEp.servers.length} server(s) extracted)`;
+
+        firstEp.servers.forEach((srv, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'server-btn';
+          btn.textContent = srv.name;
+          btn.onclick = () => {
+            let url = srv.embed_url.startsWith('//') ? 'https:' + srv.embed_url : srv.embed_url;
+            frame.src = url;
+          };
+          controlsEl.appendChild(btn);
+          if (idx === 0) btn.click();
         });
+      } catch (err) {
+        statusEl.textContent = 'Error loading dummy_output.json: ' + err.message;
       }
-
-      document.getElementById("m-val").value = "";
-      loadMirrors();
     }
-
-    async function reportMirror(id, currentReports) {
-      const ep = document.getElementById("ep-select").value;
-      const { fb } = getCfg();
-      const nextReports = currentReports + 1;
-
-      if (!fb) {
-        const local = JSON.parse(localStorage.getItem("dummy_db") || JSON.stringify(defaultDummy));
-        if (local[ep]?.[id]) local[ep][id].reports = nextReports;
-        localStorage.setItem("dummy_db", JSON.stringify(local));
-      } else {
-        await fetch(`${fb}/mirrors/${SHOW_ID}/${ep}/${id}.json`, {
-          method: "PATCH",
-          body: JSON.stringify({ reports: nextReports })
-        });
-      }
-      loadMirrors();
-    }
-
-    function init() {
-      const { fb, cf } = getCfg();
-      document.getElementById("fb-url").value = fb;
-      document.getElementById("cf-url").value = cf;
-      document.getElementById("mode-status").textContent = fb
-        ? `Connected to Firebase: ${fb}`
-        : "Mode: Local Dummy Storage (add Firebase URL to sync live)";
-      loadMirrors();
-    }
-
-    init();
-    loadMirrors();
+    loadReport();
   </script>
 </body>
 </html>
