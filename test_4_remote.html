@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test 4: Remote Upload Catalog</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; max-width: 850px; margin: auto; }
+    .item { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+    iframe { width: 100%; aspect-ratio: 16/9; border: none; margin-top: 8px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h2>Test 4: Remote Upload Pipeline</h2>
+  <div id="out">Loading...</div>
+  <script>
+    fetch("data/remote_uploads.json?v=" + Date.now())
+      .then(r => r.json())
+      .then(list => {
+        document.getElementById("out").innerHTML = list.length
+          ? list.map(x => `
+              <div class="item">
+                <strong>${x.title}</strong> (${x.dry_run ? "Dry Run" : "Live"})
+                ${x.embed_url ? `<iframe src="${x.embed_url}" allowfullscreen></iframe>` : ""}
+              </div>`).join("")
+          : "Empty. Run scripts/remote_upload.py in DRY_RUN mode first.";
+      });
+  </script>
+</body>
+</html>
