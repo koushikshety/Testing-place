@@ -6,13 +6,18 @@ SERIES_QUERIES = {
     "Battle Through the Heavens": ["Battle Through the Heavens", "BTTH"]
 }
 
-IGNORE_RE = re.compile(r"\b(pv|teaser|trailer|preview|reaction|review|amv|edit|ost|song)\b", re.I)
+# Filter out trailers, reactions, and non-English sub uploads
+IGNORE_RE = re.compile(
+    r"\b(pv|teaser|trailer|preview|reaction|review|amv|edit|ost|song|"
+    r"vostfr|vf|sub[\s._-]?indo|indo|indonesian|sub[\s._-]?es|esp|espanol|"
+    r"pt[\s._-]?br|portugues|sub[\s._-]?th|thai|viet|vietsub|rus|arabic)\b",
+    re.I
+)
 EXPLICIT_EP_RE = re.compile(r"(?:ep|episode|part)[\s._-]*0*(\d{1,4})\b", re.I)
 SHORTHAND_EP_RE = re.compile(r"\b(?:SL2|RI|BTTH|XN)[\s._-]*0*(\d{1,4})\b", re.I)
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 OUT_FILE = "data/embeds.json"
 
-# Keep previously found embeds so we never lose older episodes
 results = []
 if os.path.exists(OUT_FILE):
     try:
@@ -21,6 +26,8 @@ if os.path.exists(OUT_FILE):
     except Exception:
         results = []
 
+# Clean previously saved non-English items too
+results = [r for r in results if not IGNORE_RE.search(r.get("title", ""))]
 seen = {item.get("url") for item in results if item.get("url")}
 added = 0
 
@@ -74,4 +81,4 @@ for series, queries in SERIES_QUERIES.items():
 with open(OUT_FILE, "w", encoding="utf-8") as f:
     json.dump(results, f, indent=2, ensure_ascii=False)
 
-print(f"Added {added} new embeds. Total saved: {len(results)}")
+print(f"Added {added} clean English embeds. Total saved: {len(results)}")
