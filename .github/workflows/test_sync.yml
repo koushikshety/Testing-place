@@ -1,8 +1,9 @@
 name: Test Donghua Sync
+
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,17 +15,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - run: pip install requests beautifulsoup4
-      - run: python scripts/sync_telegram.py
-      - env:
-          TEST_RSS_URL: ${{ secrets.TEST_RSS_URL }}
-          HOST_API_KEY: ${{ secrets.HOST_API_KEY }}
-          DRY_RUN: "true"
-        run: python scripts/remote_upload.py
-      - run: |
+          python-version: '3.11'
+      - run: pip install requests
+      - run: python scripts/sync_embeds.py
+      - run: python scripts/merge_catalog.py
+      - name: Commit & Push Catalog
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git diff --staged --quiet || git commit -m "chore: update test feeds"
+          git diff --cached --quiet || git commit -m "chore: auto-sync donghua catalog"
           git push
