@@ -1878,5 +1878,13 @@
     "server": "Odysee",
     "type": "iframe",
     "url": "https://odysee.com/$/embed/SL2044/6e4a2af4d0656b85e7836e67f823862c8d03ca36"
+  },
+  {
+    "series": "Soul Land 2",
+    "episode": 48,
+    "title": "SL2048",
+    "server": "Odysee",
+    "type": "iframe",
+    "url": "https://odysee.com/$/embed/SL2048/8688a6bfc3461b82b54ccba07effc64d611e36d9"
   }
 ]
